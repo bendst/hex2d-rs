@@ -14,8 +14,14 @@ license = "MIT"
 name = "hex2d"
 path = "src/lib.rs"
 
+[features]
+default = ["serde-serde"]
+serde-serde = ["serde", "serde_derive"]
+rustc = ["rustc-serialize"]
 
 [dependencies]
 num = "*"
 rand = "*"
-rustc-serialize = "*"
+serde = {version="1.0.9",optional=true}
+serde_derive = {version="1.0.9", optional=true}
+rustc-serialize = {version="*", optional=true}

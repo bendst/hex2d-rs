@@ -63,9 +63,15 @@
 
 extern crate num;
 extern crate rand;
+#[cfg(feature="serde-serde")]
+extern crate serde;
+#[cfg(feature="serde-serde")]
+#[macro_use]
+extern crate serde_derive;
+#[cfg(feature="rustc")]
 extern crate rustc_serialize;
 
-use num::{Float, One, Zero};
+use num::{One, Zero};
 use num::iter::range_inclusive;
 use std::ops::{Add, Sub, Neg};
 use std::cmp::{max, min};
@@ -97,7 +103,18 @@ I : num::Signed +
 mod test;
 
 /// Coordinate on 2d hexagonal grid
+#[cfg(feature="rustc")]
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Ord, PartialOrd, RustcDecodable)]
+pub struct Coordinate<I : Integer = i32> {
+    /// `x` coordinate
+    pub x : I,
+    /// `y` coordinate
+    pub y : I,
+}
+
+/// Coordinate on 2d hexagonal grid
+#[cfg(feature="serde-serde")]
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Ord, PartialOrd, Serialize, Deserialize)]
 pub struct Coordinate<I : Integer = i32> {
     /// `x` coordinate
     pub x : I,
@@ -119,7 +136,18 @@ pub trait ToDirection {
 
 
 /// Position on 2d hexagonal grid (Coordinate + Direction)
+#[cfg(feature="rustc")]
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Ord, PartialOrd, RustcDecodable)]
+pub struct Position<I : Integer = i32> {
+    /// `x` coordinate
+    pub coord : Coordinate<I>,
+    /// `y` coordinate
+    pub dir : Direction,
+}
+
+/// Position on 2d hexagonal grid (Coordinate + Direction)
+#[cfg(feature="serde-serde")]
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Ord, PartialOrd, Serialize, Deserialize)]
 pub struct Position<I : Integer = i32> {
     /// `x` coordinate
     pub coord : Coordinate<I>,
@@ -134,7 +162,32 @@ pub struct Position<I : Integer = i32> {
 /// Naming convention: increasing coordinate for a given direction is first
 /// decreasing is second. The missing coordinate is unaffected by a move in
 /// a given direction.
+#[cfg(feature="rustc")]
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Ord, PartialOrd, RustcDecodable)]
+pub enum Direction {
+    /// +Y -Z
+    YZ = 0,
+    /// -Z +X
+    XZ,
+    /// +X -Y
+    XY,
+    /// -Y +Z
+    ZY,
+    /// +Z -X
+    ZX,
+    /// -X +Y
+    YX,
+}
+
+/// Direction on a hexagonal map
+///
+/// See `Coordinate` for graph with directions.
+///
+/// Naming convention: increasing coordinate for a given direction is first
+/// decreasing is second. The missing coordinate is unaffected by a move in
+/// a given direction.
+#[cfg(feature="serde-serde")]
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Ord, PartialOrd, Serialize, Deserialize)]
 pub enum Direction {
     /// +Y -Z
     YZ = 0,
@@ -155,6 +208,7 @@ static ALL_DIRECTIONS : [Direction; 6] = [ YZ, XZ, XY, ZY, ZX, YX ];
 static ALL_ANGLES : [Angle; 6] = [ Forward, Right, RightBack, Back, LeftBack, Left];
 
 /// Angle, relative to a Direction
+#[cfg(feature="rustc")]
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Ord, PartialOrd, RustcDecodable)]
 pub enum Angle {
     /// 0deg clockwise
@@ -171,7 +225,26 @@ pub enum Angle {
     Left,
 }
 
+/// Angle, relative to a Direction
+#[cfg(feature="serde-serde")]
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Ord, PartialOrd, Serialize, Deserialize)]
+pub enum Angle {
+    /// 0deg clockwise
+    Forward = 0,
+    /// 60deg clockwise
+    Right,
+    /// 120deg clockwise
+    RightBack,
+    /// 180deg clockwise
+    Back,
+    /// 240deg clockwise
+    LeftBack,
+    /// 300deg clockwise
+    Left,
+}
+
 /// Spinning directions
+#[cfg(feature="rustc")]
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Ord, PartialOrd, RustcDecodable)]
 pub enum Spin {
     /// Clockwise
@@ -180,8 +253,31 @@ pub enum Spin {
     CCW(Direction),
 }
 
+/// Spinning directions
+#[cfg(feature="serde-serde")]
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug, Ord, PartialOrd, Serialize, Deserialize)]
+pub enum Spin {
+    /// Clockwise
+    CW(Direction),
+    /// Counterclockwise
+    CCW(Direction),
+}
+
+
+
 /// Floating point tile size for pixel conversion functions
+#[cfg(feature="rustc")]
 #[derive(Copy, Clone, PartialEq, Debug, PartialOrd, RustcDecodable)]
+pub enum Spacing {
+    /// Hex-grid with an edge on top
+    FlatTop(f32),
+    /// Hex-grid with a corner on top
+    PointyTop(f32),
+}
+
+/// Floating point tile size for pixel conversion functions
+#[cfg(feature="serde-serde")]
+#[derive(Copy, Clone, PartialEq, Debug, PartialOrd, Serialize, Deserialize)]
 pub enum Spacing {
     /// Hex-grid with an edge on top
     FlatTop(f32),
@@ -195,7 +291,23 @@ pub enum Spacing {
 ///
 /// * FlatTop(3, 2)
 /// * PointyTop(2, 1)
+#[cfg(feature="rustc")]
 #[derive(Copy, Clone, Eq, PartialEq, Debug, Hash, Ord, PartialOrd, RustcDecodable)]
+pub enum IntegerSpacing<I> {
+    /// Hex-grid with an edge on top
+    FlatTop(I, I),
+    /// Hex-grid with a corner on top
+    PointyTop(I, I),
+}
+
+/// Integer pixel tile size for integer pixel conversion functions
+///
+/// Example values that give good results:
+///
+/// * FlatTop(3, 2)
+/// * PointyTop(2, 1)
+#[cfg(feature="serde-serde")]
+#[derive(Copy, Clone, Eq, PartialEq, Debug, Hash, Ord, PartialOrd, Serialize, Deserialize)]
 pub enum IntegerSpacing<I> {
     /// Hex-grid with an edge on top
     FlatTop(I, I),

@@ -913,10 +913,7 @@ impl<I: Integer> Coordinate<I> {
 
         let coordinate: Coordinate<I> = start_dir.into();
 
-        let mut cur_coord = *self +
-            coordinate.scale(
-                num::FromPrimitive::from_i32(r).unwrap(),
-            );
+        let mut cur_coord = *self + coordinate.scale(num::FromPrimitive::from_i32(r).unwrap());
         let mut cur_dir = start_dir + start_angle;
 
         for _ in 0..6 {
